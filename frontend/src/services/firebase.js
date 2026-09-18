@@ -15,10 +15,8 @@ import {
   orderBy, 
   limit 
 } from 'firebase/firestore';
-import { r2StorageService, isR2Configured } from './r2Storage';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "",
@@ -42,10 +40,9 @@ export const auth = app ? getAuth(app) : null;
 export const db = app ? getFirestore(app) : null;
 
 /* ==========================================================================
-   STORAGE SERVICE (Cloudflare R2 - Lưu trữ Avatar & Tài liệu học tập)
+   STORAGE SERVICE (Firebase Storage - Lưu trữ Avatar & Tài liệu an toàn 100%)
    ========================================================================== */
-export const storageService = r2StorageService;
-export { isR2Configured };
+export { storageService, isStorageConfigured, r2StorageService, isR2Configured } from './firebaseStorage';
 
 /* ==========================================================================
    FIRESTORE DATABASE SERVICES (Vocabularies, Schedules, Profile, Tests)
