@@ -1,0 +1,12 @@
+{
+  "name": "dajidstudy-workspace",
+  "version": "1.0.0",
+  "description": "Không gian số Cá nhân kết hợp Học tập DajidStudy",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "build:frontend": "npm --prefix frontend run build"
+  }
+}

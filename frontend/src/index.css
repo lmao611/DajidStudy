@@ -1,0 +1,627 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Custom smooth transition utilities and card hover */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+/* Dark variant for glass-card */
+.dark .glass-card {
+  background: rgba(15, 23, 42, 0.85);
+  border-color: rgba(51, 65, 85, 0.8);
+}
+
+/* Background dot grid pattern matching hero banner */
+.bg-dot-grid {
+  background-image: radial-gradient(rgba(148, 163, 184, 0.35) 1px, transparent 1px);
+  background-size: 20px 20px;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+}
+
+.dark .bg-dot-grid {
+  background-image: radial-gradient(rgba(148, 163, 184, 0.25) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Keyframe animations for entrance */
+@keyframes navFadeDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes numBounceIn {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.92);
+  }
+  60% {
+    transform: translateY(-2px) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-nav-item-1 {
+  animation: navFadeDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+}
+
+.animate-nav-item-2 {
+  animation: navFadeDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+.animate-nav-item-3 {
+  animation: navFadeDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+}
+
+.animate-nav-right {
+  animation: navFadeDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+.animate-num-pop {
+  animation: numBounceIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Banner Foot Ticker Marquee (Right-running infinite loop) */
+@keyframes marqueeRight {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-marquee-right {
+  display: flex;
+  width: max-content;
+  animation: marqueeRight 30s linear infinite;
+}
+
+.animate-marquee-right:hover {
+  animation-play-state: paused;
+}
+
+/* Ranking Badge Animations for Profile Modal */
+@keyframes rankBadgeEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-12deg);
+    filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0));
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.15) rotate(4deg);
+    filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.75));
+  }
+  80% {
+    transform: scale(0.96) rotate(-1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.3));
+  }
+}
+
+@keyframes rankBadgeFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(1.5deg);
+  }
+}
+
+@keyframes dmcRankStamp {
+  0% {
+    opacity: 0;
+    transform: scale(2.2) rotate(-20deg);
+    filter: brightness(2) drop-shadow(0 0 20px rgba(245, 158, 11, 0.8));
+  }
+  50% {
+    opacity: 1;
+    transform: scale(0.88) rotate(3deg);
+    filter: brightness(1.2);
+  }
+  75% {
+    transform: scale(1.06) rotate(-1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.animate-rank-entrance {
+  animation: rankBadgeEntrance 0.75s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.15s both;
+}
+
+.animate-rank-float {
+  animation: rankBadgeFloat 4s ease-in-out infinite;
+}
+
+@keyframes dmcRankingStamp {
+  0% {
+    opacity: 0;
+    transform: scale(2.3) rotate(-18deg);
+    filter: brightness(2.2) drop-shadow(0 0 35px rgba(59, 130, 246, 0.95));
+  }
+  50% {
+    opacity: 1;
+    transform: scale(0.88) rotate(3deg);
+    filter: brightness(1.25) drop-shadow(0 0 25px rgba(59, 130, 246, 0.7));
+  }
+  75% {
+    transform: scale(1.06) rotate(-1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.3));
+  }
+}
+
+.animate-dmc-stamp-ranking {
+  animation: dmcRankingStamp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s both, rankBadgeFloat 4s ease-in-out 0.75s infinite;
+}
+
+.animate-dmc-stamp {
+  animation: dmcRankStamp 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s both;
+}
+
+.animate-dmc-stamp-1 {
+  animation: dmcRankStamp 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s both;
+}
+
+.animate-dmc-stamp-2 {
+  animation: dmcRankStamp 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) 0.45s both;
+}
+
+/* Custom scrollbar – Light */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Custom scrollbar – Dark */
+.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* =========================================================
+   THEME TRANSITION: SUNSIDE (LEFT) & MOONSIDE (RIGHT)
+   Full-screen interlocking cover sliding from -105vw / +105vw to 0.
+   Decelerates to center, meets at 1/2 covering full screen, flies back out.
+   Switch behavior: The active mode side is BRIGHT & GLOWING,
+   while the inactive mode side is DARK & GRAYSCALE from start to finish.
+   ========================================================= */
+
+@keyframes sunsideTransitionToDark {
+  0% {
+    transform: translate3d(-105vw, 0, 0);
+    filter: grayscale(100%) brightness(0.22) contrast(1.25);
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  38% {
+    transform: translate3d(0, 0, 0);
+    filter: grayscale(100%) brightness(0.22) contrast(1.25);
+  }
+  62% {
+    transform: translate3d(0, 0, 0);
+    filter: grayscale(100%) brightness(0.22) contrast(1.25);
+    animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0);
+  }
+  100% {
+    transform: translate3d(-105vw, 0, 0);
+    filter: grayscale(100%) brightness(0.22) contrast(1.25);
+  }
+}
+
+@keyframes moonsideTransitionToDark {
+  0% {
+    transform: translate3d(105vw, 0, 0);
+    filter: brightness(1.15) contrast(1.05) drop-shadow(-3px 0 6px rgba(129, 140, 248, 0.6)) drop-shadow(0 0 35px rgba(99, 102, 241, 0.5));
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  38% {
+    transform: translate3d(0, 0, 0);
+    filter: brightness(1.2) contrast(1.08) drop-shadow(-4px 0 8px rgba(129, 140, 248, 0.8)) drop-shadow(0 0 50px rgba(99, 102, 241, 0.7));
+  }
+  62% {
+    transform: translate3d(0, 0, 0);
+    filter: brightness(1.2) contrast(1.08) drop-shadow(-4px 0 8px rgba(129, 140, 248, 0.8)) drop-shadow(0 0 50px rgba(99, 102, 241, 0.7));
+    animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0);
+  }
+  100% {
+    transform: translate3d(105vw, 0, 0);
+    filter: brightness(1.15) contrast(1.05) drop-shadow(-3px 0 6px rgba(129, 140, 248, 0.6)) drop-shadow(0 0 35px rgba(99, 102, 241, 0.5));
+  }
+}
+
+@keyframes sunsideTransitionToLight {
+  0% {
+    transform: translate3d(-105vw, 0, 0);
+    filter: brightness(1.15) contrast(1.05) drop-shadow(0 0 35px rgba(251, 191, 36, 0.5));
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  38% {
+    transform: translate3d(0, 0, 0);
+    filter: brightness(1.2) contrast(1.08) drop-shadow(0 0 50px rgba(251, 191, 36, 0.7));
+  }
+  62% {
+    transform: translate3d(0, 0, 0);
+    filter: brightness(1.2) contrast(1.08) drop-shadow(0 0 50px rgba(251, 191, 36, 0.7));
+    animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0);
+  }
+  100% {
+    transform: translate3d(-105vw, 0, 0);
+    filter: brightness(1.15) contrast(1.05) drop-shadow(0 0 35px rgba(251, 191, 36, 0.5));
+  }
+}
+
+@keyframes moonsideTransitionToLight {
+  0% {
+    transform: translate3d(105vw, 0, 0);
+    filter: grayscale(100%) brightness(0.22) contrast(1.25) drop-shadow(-3px 0 4px rgba(0, 0, 0, 0.8));
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  38% {
+    transform: translate3d(0, 0, 0);
+    filter: grayscale(100%) brightness(0.22) contrast(1.25) drop-shadow(-3px 0 4px rgba(0, 0, 0, 0.8));
+  }
+  62% {
+    transform: translate3d(0, 0, 0);
+    filter: grayscale(100%) brightness(0.22) contrast(1.25) drop-shadow(-3px 0 4px rgba(0, 0, 0, 0.8));
+    animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0);
+  }
+  100% {
+    transform: translate3d(105vw, 0, 0);
+    filter: grayscale(100%) brightness(0.22) contrast(1.25) drop-shadow(-3px 0 4px rgba(0, 0, 0, 0.8));
+  }
+}
+
+@keyframes themeTransitionBackdrop {
+  0% { opacity: 0; }
+  30% { opacity: 1; }
+  68% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.animate-sunside-to-dark {
+  animation: sunsideTransitionToDark 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-moonside-to-dark {
+  animation: moonsideTransitionToDark 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-sunside-to-light {
+  animation: sunsideTransitionToLight 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-moonside-to-light {
+  animation: moonsideTransitionToLight 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-theme-backdrop {
+  animation: themeTransitionBackdrop 1.4s ease-in-out both;
+}
+
+@keyframes borderMotionWithMoonside {
+  0% {
+    transform: translate3d(105vw, 0, 0);
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  38% {
+    transform: translate3d(0, 0, 0);
+  }
+  62% {
+    transform: translate3d(0, 0, 0);
+    animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0);
+  }
+  100% {
+    transform: translate3d(105vw, 0, 0);
+  }
+}
+
+@keyframes borderMotionWithSunside {
+  0% {
+    transform: translate3d(-105vw, 0, 0);
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  38% {
+    transform: translate3d(0, 0, 0);
+  }
+  62% {
+    transform: translate3d(0, 0, 0);
+    animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0);
+  }
+  100% {
+    transform: translate3d(-105vw, 0, 0);
+  }
+}
+
+.animate-border-with-moonside {
+  animation: borderMotionWithMoonside 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  filter: drop-shadow(-3px 0 8px rgba(129, 140, 248, 0.85)) drop-shadow(0 0 20px rgba(99, 102, 241, 0.65));
+}
+
+.animate-border-with-sunside {
+  animation: borderMotionWithSunside 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  filter: drop-shadow(3px 0 8px rgba(245, 158, 11, 0.9)) drop-shadow(0 0 20px rgba(251, 191, 36, 0.7));
+}
+
+/* =========================================================
+   TU TIÊN BADGES: TIER ANIMATIONS & SPECIAL EFFECTS
+   ========================================================= */
+
+/* Hỗn Độn: Vòng xoáy hào quang tối hư không */
+@keyframes cosmicSwirl {
+  0% {
+    transform: rotate(0deg) scale(1);
+    opacity: 0.75;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.12);
+    opacity: 0.95;
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    opacity: 0.75;
+  }
+}
+
+.animate-cosmic-swirl {
+  animation: cosmicSwirl 8s linear infinite;
+}
+
+/* Thần Danh: 7 sắc cầu vồng chuyển động sắc thái */
+@keyframes rainbowShift {
+  0% {
+    filter: hue-rotate(0deg) brightness(1.1);
+  }
+  50% {
+    filter: hue-rotate(180deg) brightness(1.25);
+  }
+  100% {
+    filter: hue-rotate(360deg) brightness(1.1);
+  }
+}
+
+.animate-rainbow-prism {
+  animation: rainbowShift 6s linear infinite;
+}
+
+/* Thần Danh: Lơ lửng bồng bềnh chậm và nhẹ */
+@keyframes stardustFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-7px) rotate(0.8deg);
+  }
+}
+
+.animate-stardust-float {
+  animation: stardustFloat 4s ease-in-out infinite;
+}
+
+/* Thần Danh: Vệt sáng quét ngang (Lens Gleam) */
+@keyframes lensGleam {
+  0%, 20% {
+    transform: translateX(-150%) skewX(-25deg);
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.85;
+  }
+  60%, 100% {
+    transform: translateX(200%) skewX(-25deg);
+    opacity: 0;
+  }
+}
+
+.animate-lens-gleam {
+  animation: lensGleam 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Thần Danh: Bụi sao lấp lánh nhẹ bay xung quanh */
+@keyframes stardustTwinkle {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.6) translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.25) translateY(-3px);
+  }
+}
+
+.animate-stardust-twinkle-1 {
+  animation: stardustTwinkle 2s ease-in-out infinite;
+}
+
+.animate-stardust-twinkle-2 {
+  animation: stardustTwinkle 2.5s ease-in-out 0.6s infinite;
+}
+
+.animate-stardust-twinkle-3 {
+  animation: stardustTwinkle 3s ease-in-out 1.2s infinite;
+}
+
+/* =========================================================
+   COLLECTIBLE BADGE CARDS: FULL CARD VFX & ANIMATIONS
+   ========================================================= */
+
+/* Card Entrance: Thẻ bài xuất trận từ càn khôn */
+@keyframes cardDealIn {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.92) rotateX(10deg);
+  }
+  60% {
+    transform: translateY(-4px) scale(1.02) rotateX(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0deg);
+  }
+}
+
+.animate-card-deal {
+  animation: cardDealIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Card Aura Breathing / Pulsing Effect cho toàn bộ thẻ */
+@keyframes cardAuraPulse {
+  0%, 100% {
+    opacity: 0.65;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.015);
+  }
+}
+
+.animate-card-aura {
+  animation: cardAuraPulse 3s ease-in-out infinite;
+}
+
+/* Hào quang tối Hư Không Hỗn Độn ôm khít theo viền thẻ */
+@keyframes cosmicVoidPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 16px rgba(168, 85, 247, 0.65)) drop-shadow(0 0 32px rgba(59, 130, 246, 0.45));
+    opacity: 0.8;
+  }
+  50% {
+    filter: drop-shadow(0 0 28px rgba(217, 70, 239, 0.95)) drop-shadow(0 0 50px rgba(147, 51, 234, 0.7));
+    opacity: 1;
+  }
+}
+
+.animate-cosmic-void {
+  animation: cosmicVoidPulse 3.5s ease-in-out infinite;
+}
+
+/* Hiệu ứng tráng gương Holographic Sheen quét chéo bao trọn toàn bộ thẻ từ mép sang mép */
+@keyframes cardHoloSheen {
+  0% {
+    transform: translateX(-140%);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  45% {
+    opacity: 0.9;
+  }
+  60% {
+    transform: translateX(140%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(140%);
+    opacity: 0;
+  }
+}
+
+.animate-card-holo-sheen {
+  animation: cardHoloSheen 4.2s ease-in-out infinite;
+}
+
+/* Thẻ Thần Danh lơ lửng bồng bềnh nguyên khối thẻ */
+@keyframes cardFloatGrand {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-9px) rotate(0.6deg);
+  }
+}
+
+.animate-card-float-grand {
+  animation: cardFloatGrand 4.5s ease-in-out infinite;
+}
+
+/* Lửa Mặt Trời Xích Viêm Hoàng Kim nhấp nháy trên thẻ Cực Phẩm */
+@keyframes solarFirePulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 15px rgba(244, 63, 94, 0.5)) drop-shadow(0 0 25px rgba(245, 158, 11, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 25px rgba(244, 63, 94, 0.8)) drop-shadow(0 0 40px rgba(245, 158, 11, 0.5));
+  }
+}
+
+.animate-solar-fire {
+  animation: solarFirePulse 2.8s ease-in-out infinite;
+}
