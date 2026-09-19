@@ -244,9 +244,10 @@ export const StudyProvider = ({ children }) => {
               avatar: cloudProfile.avatar || prev.avatar || '/avt.jpg',
             };
 
-            // Đồng bộ ngược lại Firestore nếu local đang có số từ/SE cao hơn cloud
+            // Đồng bộ ngược lại Firestore nếu local đang có số từ/SE/Streak cao hơn cloud
             if (mergedStats.wordsLearned > (Number(cloudStats.wordsLearned) || 0) ||
-                mergedStats.totalSE > (Number(cloudStats.totalSE) || 0)) {
+                mergedStats.totalSE > (Number(cloudStats.totalSE) || 0) ||
+                mergedStats.streakDays > (Number(cloudStats.streakDays) || 0)) {
               profileService.saveProfile(nextMerged, 'main_profile');
             }
 
@@ -256,59 +257,77 @@ export const StudyProvider = ({ children }) => {
           await profileService.saveProfile(profile, 'main_profile');
         }
 
-        // 2. Đồng bộ Vocabularies — xóa mock cũ nếu có
+        // 2. Đồng bộ Vocabularies 2 chiều (Local <-> Cloud Firestore)
         const cloudVocabs = await vocabService.getAll();
-        if (cloudVocabs && cloudVocabs.length > 0 && isMounted) {
-          // Xóa mock data cũ (voc-1..voc-6) nếu còn tồn tại
-          const mockVocabIds = ['voc-1', 'voc-2', 'voc-3', 'voc-4', 'voc-5', 'voc-6'];
-          const hasMock = cloudVocabs.some(v => mockVocabIds.includes(v.id));
-          if (hasMock) {
-            for (const v of cloudVocabs) {
-              if (mockVocabIds.includes(v.id)) {
-                await vocabService.delete(v.id);
-              }
-            }
-            const cleaned = cloudVocabs.filter(v => !mockVocabIds.includes(v.id));
-            setVocabularies(cleaned);
-            localStorage.setItem('dajid_vocabs', JSON.stringify(cleaned));
+        const localVocabs = JSON.parse(localStorage.getItem('dajid_vocabs') || '[]');
+        const mockVocabIds = ['voc-1', 'voc-2', 'voc-3', 'voc-4', 'voc-5', 'voc-6'];
+
+        const cleanCloud = (cloudVocabs || []).filter(v => v && v.word && !mockVocabIds.includes(v.id));
+        const cleanLocal = (localVocabs || []).filter(v => v && v.word && !mockVocabIds.includes(v.id));
+
+        // Gom danh sách theo từ (word lowercased)
+        const vocabMap = new Map();
+        cleanCloud.forEach(item => {
+          vocabMap.set(item.word.trim().toLowerCase(), item);
+        });
+
+        // Tìm từ có ở local nhưng chưa có trên cloud để upload lên cloud
+        const toUploadToCloud = [];
+        cleanLocal.forEach(item => {
+          const key = item.word.trim().toLowerCase();
+          if (!vocabMap.has(key)) {
+            vocabMap.set(key, item);
+            toUploadToCloud.push(item);
           } else {
-            setVocabularies(cloudVocabs);
+            // Nếu cả 2 đều có: giữ lại bản có số lần ôn tập (reps) cao hơn hoặc đã thuộc
+            const existing = vocabMap.get(key);
+            if ((item.reps || 0) > (existing.reps || 0) || item.isMastered) {
+              vocabMap.set(key, { ...existing, ...item });
+            }
           }
-        } else if (cloudVocabs && cloudVocabs.length === 0 && isMounted) {
-          // Cloud rỗng — reset localStorage về rỗng (xóa dữ liệu mock local cũ nếu có)
-          const localVocabs = JSON.parse(localStorage.getItem('dajid_vocabs') || '[]');
-          const mockVocabIds = ['voc-1', 'voc-2', 'voc-3', 'voc-4', 'voc-5', 'voc-6'];
-          if (localVocabs.some(v => mockVocabIds.includes(v.id))) {
-            setVocabularies([]);
-            localStorage.setItem('dajid_vocabs', '[]');
+        });
+
+        const mergedVocabs = Array.from(vocabMap.values());
+        if (isMounted) {
+          setVocabularies(mergedVocabs);
+          localStorage.setItem('dajid_vocabs', JSON.stringify(mergedVocabs));
+        }
+
+        // Tự động đẩy các từ còn thiếu từ Local lên Cloud để điện thoại và các thiết bị khác cùng có
+        if (toUploadToCloud.length > 0) {
+          for (const vocab of toUploadToCloud) {
+            await vocabService.add(vocab).catch(e => console.warn('Lỗi đồng bộ từ lên cloud:', e));
           }
         }
 
-        // 3. Đồng bộ Schedules — xóa mock cũ nếu có
+        // 3. Đồng bộ Schedules 2 chiều (Local <-> Cloud Firestore)
         const cloudSchedules = await scheduleService.getAll();
-        if (cloudSchedules && cloudSchedules.length > 0 && isMounted) {
-          // Xóa mock data cũ (sch-1..sch-5) nếu còn tồn tại
-          const mockSchIds = ['sch-1', 'sch-2', 'sch-3', 'sch-4', 'sch-5'];
-          const hasMockSch = cloudSchedules.some(s => mockSchIds.includes(s.id));
-          if (hasMockSch) {
-            for (const s of cloudSchedules) {
-              if (mockSchIds.includes(s.id)) {
-                await scheduleService.delete(s.id);
-              }
-            }
-            const cleaned = cloudSchedules.filter(s => !mockSchIds.includes(s.id));
-            setSchedules(cleaned);
-            localStorage.setItem('dajid_schedules', JSON.stringify(cleaned));
-          } else {
-            setSchedules(cloudSchedules);
+        const localSchedules = JSON.parse(localStorage.getItem('dajid_schedules') || '[]');
+        const mockSchIds = ['sch-1', 'sch-2', 'sch-3', 'sch-4', 'sch-5'];
+
+        const cleanCloudSch = (cloudSchedules || []).filter(s => s && s.subject && !mockSchIds.includes(s.id));
+        const cleanLocalSch = (localSchedules || []).filter(s => s && s.subject && !mockSchIds.includes(s.id));
+
+        const schMap = new Map();
+        cleanCloudSch.forEach(s => schMap.set(s.id || s.subject, s));
+        const schToUpload = [];
+        cleanLocalSch.forEach(s => {
+          const key = s.id || s.subject;
+          if (!schMap.has(key)) {
+            schMap.set(key, s);
+            schToUpload.push(s);
           }
-        } else if (cloudSchedules && cloudSchedules.length === 0 && isMounted) {
-          // Cloud rỗng — reset localStorage về rỗng (xóa dữ liệu mock local cũ nếu có)
-          const localSchedules = JSON.parse(localStorage.getItem('dajid_schedules') || '[]');
-          const mockSchIds = ['sch-1', 'sch-2', 'sch-3', 'sch-4', 'sch-5'];
-          if (localSchedules.some(s => mockSchIds.includes(s.id))) {
-            setSchedules([]);
-            localStorage.setItem('dajid_schedules', '[]');
+        });
+
+        const mergedSchedules = Array.from(schMap.values());
+        if (isMounted) {
+          setSchedules(mergedSchedules);
+          localStorage.setItem('dajid_schedules', JSON.stringify(mergedSchedules));
+        }
+
+        if (schToUpload.length > 0) {
+          for (const s of schToUpload) {
+            await scheduleService.add(s).catch(e => console.warn('Lỗi đồng bộ lịch lên cloud:', e));
           }
         }
 
