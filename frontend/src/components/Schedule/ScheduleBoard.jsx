@@ -3,8 +3,8 @@ import { ChevronLeft, ChevronRight, Filter, CalendarDays, Plus } from 'lucide-re
 import { useStudyStore } from '../../stores/studyStore';
 import { getDaysInMonth, getFirstDayOfMonth, getWeekDates, formatDate, IMPORTANCE_LEVELS, getImportanceStyles, parseTime, calculateOverlapIntervals } from './ScheduleUtils';
 
-export const ScheduleBoard = ({ onAddSchedule }) => {
-  const { schedules, toggleScheduleComplete } = useStudyStore();
+export const ScheduleBoard = ({ onAddSchedule, onScheduleClick }) => {
+  const { schedules } = useStudyStore();
   
   // States
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -212,7 +212,7 @@ export const ScheduleBoard = ({ onAddSchedule }) => {
                             left: `calc(4rem + ${dayIdx} * ((100% - 4rem) / 7) + 2px)`,
                             width: `calc(((100% - 4rem) / 7) - 4px)`
                           }}
-                          onClick={() => toggleScheduleComplete(sch.id)}
+                          onClick={() => onScheduleClick(sch)}
                           title={`${sch.subject}\n${sch.timeStart} - ${sch.timeEnd}`}
                         >
                           <div className={`text-[10px] font-bold truncate leading-tight mb-0.5 ${sch.completed ? 'line-through opacity-60' : ''}`}>{sch.subject}</div>

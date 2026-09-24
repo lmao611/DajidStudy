@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
-import { CalendarDays, Plus, X } from 'lucide-react';
+import { CalendarDays, Plus, X, Trash2, Edit2, CheckCircle2, Circle } from 'lucide-react';
 import { useStudyStore } from '../stores/studyStore';
 import { PlanManager } from '../components/Schedule/PlanManager';
 import { ScheduleBoard } from '../components/Schedule/ScheduleBoard';
-import { IMPORTANCE_LEVELS } from '../components/Schedule/ScheduleUtils';
+import { IMPORTANCE_LEVELS, getImportanceStyles } from '../components/Schedule/ScheduleUtils';
 
 export const Schedule = () => {
-  const { addSchedule, plans } = useStudyStore();
+  const { addSchedule, updateSchedule, deleteSchedule, toggleScheduleComplete, plans } = useStudyStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+
   // Form State
   const [formData, setFormData] = useState({
     subject: '',
-    date: '', // specific date YYYY-MM-DD
+    date: '', 
     timeStart: '08:00',
     timeEnd: '09:30',
     importance: 2,
@@ -23,29 +27,63 @@ export const Schedule = () => {
   });
 
   const openAddModal = (dateStr = '') => {
-    setFormData(prev => ({ ...prev, date: dateStr || new Date().toISOString().split('T')[0] }));
+    setFormData({
+      subject: '', date: dateStr || new Date().toISOString().split('T')[0], timeStart: '08:00', timeEnd: '09:30', 
+      importance: 2, planId: '', location: '', type: 'Coding', notes: ''
+    });
     setIsModalOpen(true);
+  };
+
+  const handleScheduleClick = (sch) => {
+    setSelectedSchedule(sch);
+    setIsViewModalOpen(true);
+    setIsEditing(false);
+  };
+
+  const handleEditClick = () => {
+    setFormData({
+      subject: selectedSchedule.subject || '',
+      date: selectedSchedule.date || '',
+      timeStart: selectedSchedule.timeStart || '08:00',
+      timeEnd: selectedSchedule.timeEnd || '09:30',
+      importance: selectedSchedule.importance || 2,
+      planId: selectedSchedule.planId || '',
+      location: selectedSchedule.location || '',
+      type: selectedSchedule.type || 'Coding',
+      notes: selectedSchedule.notes || ''
+    });
+    setIsEditing(true);
+    setIsViewModalOpen(false);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = () => {
+    if (confirm('Bạn có chắc chắn muốn xóa ca học này?')) {
+      deleteSchedule(selectedSchedule.id);
+      setIsViewModalOpen(false);
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.subject.trim()) return;
 
-    // Convert date to dayOfWeek for backward compatibility if needed, or just rely on date
     const d = new Date(formData.date);
     const dayNames = ['CN', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
     
-    addSchedule({
+    const dataToSave = {
       ...formData,
       importance: Number(formData.importance),
-      dayOfWeek: dayNames[d.getDay()]
-    });
+      dayOfWeek: dayNames[d.getDay()] || formData.dayOfWeek
+    };
+
+    if (isEditing && selectedSchedule) {
+      updateSchedule(selectedSchedule.id, dataToSave);
+    } else {
+      addSchedule(dataToSave);
+    }
     
     setIsModalOpen(false);
-    setFormData({
-      subject: '', date: '', timeStart: '08:00', timeEnd: '09:30', 
-      importance: 2, planId: '', location: '', type: 'Coding', notes: ''
-    });
   };
 
   return (
@@ -67,7 +105,7 @@ export const Schedule = () => {
         </div>
 
         <button
-          onClick={() => openAddModal()}
+          onClick={() => { setIsEditing(false); openAddModal(); }}
           className="px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-0.5"
         >
           <Plus className="w-4 h-4" />
@@ -79,14 +117,71 @@ export const Schedule = () => {
       <PlanManager />
 
       {/* Dual Board Schedule Section */}
-      <ScheduleBoard onAddSchedule={openAddModal} />
+      <ScheduleBoard onAddSchedule={(d) => { setIsEditing(false); openAddModal(d); }} onScheduleClick={handleScheduleClick} />
 
-      {/* Modal Thêm Ca Học */}
+      {/* Modal View Details */}
+      {isViewModalOpen && selectedSchedule && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-700 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-start justify-between mb-4">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 pr-4">{selectedSchedule.subject}</h3>
+              <button onClick={() => setIsViewModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300 mb-6">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold w-24">Thời gian:</span>
+                <span>{selectedSchedule.timeStart} - {selectedSchedule.timeEnd}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold w-24">Ngày:</span>
+                <span>{selectedSchedule.date || selectedSchedule.dayOfWeek}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold w-24">Quan trọng:</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${getImportanceStyles(selectedSchedule.importance || 2)} border`}>
+                  {IMPORTANCE_LEVELS[selectedSchedule.importance || 2]?.label}
+                </span>
+              </div>
+              {selectedSchedule.planId && (
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold w-24">Thuộc KH:</span>
+                  <span className="truncate flex-1">{plans.find(p => p.id === selectedSchedule.planId)?.title || 'Không rõ'}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button 
+                onClick={() => { toggleScheduleComplete(selectedSchedule.id); setIsViewModalOpen(false); }}
+                className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold ${selectedSchedule.completed ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'}`}
+              >
+                {selectedSchedule.completed ? <Circle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                {selectedSchedule.completed ? 'Đánh dấu chưa xong' : 'Đánh dấu hoàn thành'}
+              </button>
+              <div className="flex gap-2">
+                <button onClick={handleEditClick} className="flex-1 flex items-center justify-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-200 dark:hover:bg-slate-700">
+                  <Edit2 className="w-3.5 h-3.5" /> Sửa
+                </button>
+                <button onClick={handleDelete} className="flex-1 flex items-center justify-center gap-1 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-xl text-xs font-semibold hover:bg-rose-100 dark:hover:bg-rose-900/50">
+                  <Trash2 className="w-3.5 h-3.5" /> Xóa
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Thêm / Sửa Ca Học */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 overflow-y-auto">
           <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-slate-700 animate-in fade-in zoom-in-95 duration-200 my-8">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Thêm Ca Học Mới</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                {isEditing ? 'Sửa Ca Học' : 'Thêm Ca Học Mới'}
+              </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -168,7 +263,9 @@ export const Schedule = () => {
 
               <div className="pt-3 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-700">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold">Hủy</button>
-                <button type="submit" className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold">Lưu ca học</button>
+                <button type="submit" className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold">
+                  {isEditing ? 'Cập nhật' : 'Lưu ca học'}
+                </button>
               </div>
 
             </form>
