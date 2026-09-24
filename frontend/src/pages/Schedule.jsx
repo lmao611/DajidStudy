@@ -151,6 +151,12 @@ export const Schedule = () => {
                   <span className="truncate flex-1">{plans.find(p => p.id === selectedSchedule.planId)?.title || 'Không rõ'}</span>
                 </div>
               )}
+              {selectedSchedule.notes && (
+                <div className="flex flex-col gap-1 mt-2 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+                  <span className="font-semibold text-xs text-slate-700 dark:text-slate-200">Ghi chú:</span>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{selectedSchedule.notes}</p>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-2">
@@ -183,6 +189,7 @@ export const Schedule = () => {
                 {isEditing ? 'Sửa Ca Học' : 'Thêm Ca Học Mới'}
               </h3>
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
                 className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
@@ -259,6 +266,17 @@ export const Schedule = () => {
                     <option key={p.id} value={p.id}>{p.title}</option>
                   ))}
                 </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-semibold text-slate-700 dark:text-slate-300 block">Ghi chú</label>
+                <textarea
+                  value={formData.notes || ''}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder="Ghi chú thêm cho ca học này..."
+                  rows={2}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500/20 outline-none custom-scrollbar resize-none"
+                />
               </div>
 
               <div className="pt-3 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-700">
