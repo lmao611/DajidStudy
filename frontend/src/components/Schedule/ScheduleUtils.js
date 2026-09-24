@@ -50,14 +50,10 @@ export const calculateOverlaps = (schedules) => {
   const result = [];
   
   sorted.forEach(sch => {
-    // Find groups of overlapping schedules
     const start = parseTime(sch.timeStart);
     const end = parseTime(sch.timeEnd);
-    
-    // Check if it overlaps with an existing group
     let placed = false;
     for (let group of result) {
-      // Group overlaps if the start time is strictly less than the group's max end time
       if (start < group.maxEnd) {
         group.items.push(sch);
         group.maxEnd = Math.max(group.maxEnd, end);
@@ -65,29 +61,61 @@ export const calculateOverlaps = (schedules) => {
         break;
       }
     }
-    
     if (!placed) {
-      result.push({
-        maxEnd: end,
-        items: [sch]
-      });
+      result.push({ maxEnd: end, items: [sch] });
     }
   });
   
-  // Flatten and attach layout info
   const laidOutSchedules = [];
   result.forEach(group => {
     const totalCols = group.items.length;
     group.items.forEach((item, index) => {
       laidOutSchedules.push({
         ...item,
-        layout: {
-          overlapCount: totalCols,
-          colIndex: index
-        }
+        layout: { overlapCount: totalCols, colIndex: index }
       });
     });
   });
-  
   return laidOutSchedules;
+};
+
+export const calculateOverlapIntervals = (schedules) => {
+  if (!schedules || schedules.length < 2) return [];
+  
+  const events = [];
+  schedules.forEach(sch => {
+    events.push({ time: parseTime(sch.timeStart), type: 'start' });
+    events.push({ time: parseTime(sch.timeEnd), type: 'end' });
+  });
+  
+  // Sort by time. If times are equal, process 'end' before 'start'
+  events.sort((a, b) => {
+    if (a.time !== b.time) return a.time - b.time;
+    if (a.type === b.type) return 0;
+    return a.type === 'end' ? -1 : 1;
+  });
+  
+  let activeCount = 0;
+  let overlapStart = null;
+  const overlaps = [];
+  
+  events.forEach(ev => {
+    if (ev.type === 'start') {
+      activeCount++;
+      if (activeCount === 2) {
+        overlapStart = ev.time;
+      }
+    } else {
+      if (activeCount >= 2 && activeCount - 1 < 2) {
+        // transitioning from >= 2 active to < 2 active means an overlap region ended
+        if (overlapStart !== null && overlapStart < ev.time) {
+          overlaps.push({ start: overlapStart, end: ev.time });
+        }
+        overlapStart = null;
+      }
+      activeCount--;
+    }
+  });
+  
+  return overlaps;
 };

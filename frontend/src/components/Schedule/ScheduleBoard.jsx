@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Filter, CalendarDays, Plus } from 'lucide-react';
 import { useStudyStore } from '../../stores/studyStore';
-import { getDaysInMonth, getFirstDayOfMonth, getWeekDates, formatDate, IMPORTANCE_LEVELS, getImportanceStyles, parseTime, calculateOverlaps } from './ScheduleUtils';
+import { getDaysInMonth, getFirstDayOfMonth, getWeekDates, formatDate, IMPORTANCE_LEVELS, getImportanceStyles, parseTime, calculateOverlapIntervals } from './ScheduleUtils';
 
 export const ScheduleBoard = ({ onAddSchedule }) => {
   const { schedules, toggleScheduleComplete } = useStudyStore();
@@ -188,43 +188,60 @@ export const ScheduleBoard = ({ onAddSchedule }) => {
               {weekDates.map((date, dayIdx) => {
                 const dateStr = formatDate(date);
                 const daySchedules = filteredSchedules.filter(s => s.date === dateStr || (!s.date && s.dayOfWeek === weekDaysVN[dayIdx]));
-                const laidOut = calculateOverlaps(daySchedules);
+                const overlapIntervals = calculateOverlapIntervals(daySchedules);
 
-                return laidOut.map(sch => {
-                  const startH = parseTime(sch.timeStart);
-                  const endH = parseTime(sch.timeEnd);
-                  if (startH < 6 || startH >= 24) return null; // Out of bounds for this view
+                return (
+                  <React.Fragment key={dayIdx}>
+                    {/* Render standard blocks */}
+                    {daySchedules.map((sch, i) => {
+                      const startH = parseTime(sch.timeStart);
+                      const endH = parseTime(sch.timeEnd);
+                      if (startH < 6 || startH >= 24) return null;
 
-                  const top = (startH - 6) * 64; // 64px per hour
-                  const height = (endH - startH) * 64;
-                  
-                  // Width and Left based on overlap
-                  const widthPct = 100 / sch.layout.overlapCount;
-                  const leftPct = widthPct * sch.layout.colIndex;
-                  const hasOverlap = sch.layout.overlapCount > 1;
+                      const top = (startH - 6) * 64;
+                      const height = (endH - startH) * 64;
+                      const importanceStyles = getImportanceStyles(sch.importance || 2);
 
-                  const importanceStyles = getImportanceStyles(sch.importance || 2);
+                      return (
+                        <div
+                          key={sch.id}
+                          className={`absolute rounded-lg p-1.5 overflow-hidden transition-all hover:z-30 cursor-pointer shadow-sm hover:shadow-md opacity-85 hover:opacity-100 ${importanceStyles}`}
+                          style={{
+                            top: `${top}px`,
+                            height: `${height}px`,
+                            left: `calc(4rem + ${dayIdx} * ((100% - 4rem) / 7) + 2px)`,
+                            width: `calc(((100% - 4rem) / 7) - 4px)`
+                          }}
+                          onClick={() => toggleScheduleComplete(sch.id)}
+                          title={`${sch.subject}\n${sch.timeStart} - ${sch.timeEnd}`}
+                        >
+                          <div className={`text-[10px] font-bold truncate leading-tight mb-0.5 ${sch.completed ? 'line-through opacity-60' : ''}`}>{sch.subject}</div>
+                          <div className="text-[9px] opacity-80">{sch.timeStart}-{sch.timeEnd}</div>
+                        </div>
+                      );
+                    })}
 
-                  return (
-                    <div
-                      key={sch.id}
-                      className={`absolute rounded-lg p-1.5 overflow-hidden transition-all hover:z-30 cursor-pointer shadow-sm hover:shadow-md ${importanceStyles} ${sch.completed ? 'opacity-60' : ''}`}
-                      style={{
-                        top: `${top}px`,
-                        height: `${height}px`,
-                        left: `calc(4rem + ${dayIdx} * ((100% - 4rem) / 7) + ${leftPct / 100} * ((100% - 4rem) / 7) + 2px)`,
-                        width: `calc(((100% - 4rem) / 7) * ${widthPct / 100} - 4px)`,
-                        // Overlap Warning Pattern if overlapCount > 1
-                        backgroundImage: hasOverlap ? 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(239, 68, 68, 0.1) 10px, rgba(239, 68, 68, 0.1) 20px)' : 'none'
-                      }}
-                      onClick={() => toggleScheduleComplete(sch.id)}
-                      title={`${sch.subject}\n${sch.timeStart} - ${sch.timeEnd}${hasOverlap ? '\n⚠️ Trùng lịch' : ''}`}
-                    >
-                      <div className="text-[10px] font-bold truncate leading-tight mb-0.5">{sch.subject}</div>
-                      <div className="text-[9px] opacity-80">{sch.timeStart}-{sch.timeEnd}</div>
-                    </div>
-                  );
-                });
+                    {/* Render overlap warning red blocks on top */}
+                    {overlapIntervals.map((interval, i) => {
+                      const top = (interval.start - 6) * 64;
+                      const height = (interval.end - interval.start) * 64;
+                      return (
+                        <div
+                          key={`overlap-${i}`}
+                          className="absolute pointer-events-none rounded-lg z-20 border-2 border-rose-500/50"
+                          style={{
+                            top: `${top}px`,
+                            height: `${height}px`,
+                            left: `calc(4rem + ${dayIdx} * ((100% - 4rem) / 7) + 2px)`,
+                            width: `calc(((100% - 4rem) / 7) - 4px)`,
+                            backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(239, 68, 68, 0.4) 10px, rgba(239, 68, 68, 0.4) 20px)'
+                          }}
+                          title="⚠️ Trùng lịch"
+                        />
+                      );
+                    })}
+                  </React.Fragment>
+                );
               })}
             </div>
             
