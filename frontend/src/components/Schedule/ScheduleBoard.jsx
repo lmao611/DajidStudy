@@ -212,7 +212,7 @@ export const ScheduleBoard = ({ onAddSchedule }) => {
                       style={{
                         top: `${top}px`,
                         height: `${height}px`,
-                        left: `calc(4rem + ${dayIdx} * ((100% - 4rem) / 7) + ${leftPct}% * ((100% - 4rem) / 7) / 100 + 2px)`,
+                        left: `calc(4rem + ${dayIdx} * ((100% - 4rem) / 7) + ${leftPct / 100} * ((100% - 4rem) / 7) + 2px)`,
                         width: `calc(((100% - 4rem) / 7) * ${widthPct / 100} - 4px)`,
                         // Overlap Warning Pattern if overlapCount > 1
                         backgroundImage: hasOverlap ? 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(239, 68, 68, 0.1) 10px, rgba(239, 68, 68, 0.1) 20px)' : 'none'
