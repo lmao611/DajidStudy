@@ -198,6 +198,74 @@ export const scheduleService = {
   }
 };
 
+export const planService = {
+  async getAll() {
+    if (!db) return [];
+    try {
+      const colRef = collection(db, 'plans');
+      const snapshot = await getDocs(colRef);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (err) {
+      console.warn('Firestore planService.getAll error:', err);
+      return [];
+    }
+  },
+
+  async add(item) {
+    if (!db) return item;
+    try {
+      const id = item.id || `plan-${Date.now()}`;
+      const docRef = doc(db, 'plans', id);
+      const data = { ...item, id, createdAt: item.createdAt || new Date().toISOString() };
+      await setDoc(docRef, data, { merge: true });
+      return data;
+    } catch (err) {
+      console.warn('Firestore planService.add error:', err);
+      return item;
+    }
+  },
+
+  async update(id, data) {
+    if (!db || !id) return false;
+    try {
+      const docRef = doc(db, 'plans', id);
+      await setDoc(docRef, { ...data, updatedAt: new Date().toISOString() }, { merge: true });
+      return true;
+    } catch (err) {
+      console.warn('Firestore planService.update error:', err);
+      return false;
+    }
+  },
+
+  async delete(id) {
+    if (!db || !id) return false;
+    try {
+      const docRef = doc(db, 'plans', id);
+      await deleteDoc(docRef);
+      return true;
+    } catch (err) {
+      console.warn('Firestore planService.delete error:', err);
+      return false;
+    }
+  },
+
+  async addBatch(plansList) {
+    if (!db || !Array.isArray(plansList) || plansList.length === 0) return 0;
+    try {
+      const batch = writeBatch(db);
+      plansList.forEach(plan => {
+        const docRef = doc(db, 'plans', plan.id);
+        batch.set(docRef, plan, { merge: true });
+      });
+      await batch.commit();
+      return plansList.length;
+    } catch (err) {
+      console.warn('Firestore planService.addBatch error:', err);
+      return 0;
+    }
+  }
+};
+
 export const testHistoryService = {
   async getAll() {
     if (!db) return [];

@@ -5,6 +5,7 @@ import {
   scheduleService,
   testHistoryService,
   reviewLogService,
+  planService,
   isFirebaseConfigured
 } from '../services/firebase';
 import { r2StorageService, isR2Configured } from '../services/r2Storage';
@@ -48,6 +49,9 @@ const initialSchedules = [];
 
 // Initial data for Vocabularies (empty — user adds their own)
 const initialVocabularies = [];
+
+// Initial data for Plans (empty)
+const initialPlans = [];
 
 const StudyContext = createContext(null);
 
@@ -129,6 +133,11 @@ export const StudyProvider = ({ children }) => {
     }
   });
 
+  const [plans, setPlans] = useState(() => {
+    const saved = localStorage.getItem('dajid_plans');
+    return saved ? JSON.parse(saved) : initialPlans;
+  });
+
   const [cloudSynced, setCloudSynced] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -146,6 +155,10 @@ export const StudyProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('dajid_vocabs', JSON.stringify(vocabularies));
   }, [vocabularies]);
+
+  useEffect(() => {
+    localStorage.setItem('dajid_plans', JSON.stringify(plans));
+  }, [plans]);
 
   // Initial cloud sync with Firestore
   useEffect(() => {
@@ -331,6 +344,33 @@ export const StudyProvider = ({ children }) => {
           }
         }
 
+        // 3.5 Đồng bộ Plans 2 chiều (Local <-> Cloud Firestore)
+        const cloudPlans = await planService.getAll();
+        const localPlans = JSON.parse(localStorage.getItem('dajid_plans') || '[]');
+        
+        const planMap = new Map();
+        (cloudPlans || []).forEach(p => planMap.set(p.id, p));
+        
+        const plansToUpload = [];
+        (localPlans || []).forEach(p => {
+          if (!planMap.has(p.id)) {
+            planMap.set(p.id, p);
+            plansToUpload.push(p);
+          }
+        });
+
+        const mergedPlans = Array.from(planMap.values());
+        if (isMounted) {
+          setPlans(mergedPlans);
+          localStorage.setItem('dajid_plans', JSON.stringify(mergedPlans));
+        }
+
+        if (plansToUpload.length > 0) {
+          for (const p of plansToUpload) {
+            await planService.add(p).catch(e => console.warn('Lỗi đồng bộ plans lên cloud:', e));
+          }
+        }
+
         // 4. Đồng bộ Review Logs (Nén từ điển / Dictionary-compressed format)
         try {
           const cloudLogs = await reviewLogService.getCompressedLogs();
@@ -461,6 +501,61 @@ export const StudyProvider = ({ children }) => {
     if (isFirebaseConfigured) {
       await scheduleService.delete(id);
     }
+  };
+
+  const updateSchedule = async (id, updatedData) => {
+    setSchedules(prev => prev.map(item => item.id === id ? { ...item, ...updatedData } : item));
+    if (isFirebaseConfigured) {
+      await scheduleService.update(id, updatedData);
+    }
+  };
+
+  // Plan Actions
+  const addPlan = async (planData) => {
+    const newPlan = {
+      ...planData,
+      id: "plan-" + Date.now(),
+      createdAt: new Date().toISOString()
+    };
+    setPlans(prev => [newPlan, ...prev]);
+    if (isFirebaseConfigured) {
+      await planService.add(newPlan);
+    }
+  };
+
+  const updatePlan = async (id, updatedData) => {
+    setPlans(prev => prev.map(item => item.id === id ? { ...item, ...updatedData } : item));
+    if (isFirebaseConfigured) {
+      await planService.update(id, updatedData);
+    }
+  };
+
+  const deletePlan = async (id) => {
+    setPlans(prev => prev.filter(item => item.id !== id));
+    if (isFirebaseConfigured) {
+      await planService.delete(id);
+    }
+  };
+
+  const importPlansFromJson = async (plansList) => {
+    if (!Array.isArray(plansList) || plansList.length === 0) return 0;
+    const now = Date.now();
+    const validItems = plansList.map((item, index) => ({
+      ...item,
+      id: item.id || `plan-${now}-${index}`,
+      createdAt: item.createdAt || new Date().toISOString()
+    }));
+
+    setPlans(prev => {
+      const existingIds = new Set(prev.map(p => p.id));
+      const filtered = validItems.filter(p => !existingIds.has(p.id));
+      return [...filtered, ...prev];
+    });
+
+    if (isFirebaseConfigured) {
+      await planService.addBatch(validItems);
+    }
+    return validItems.length;
   };
 
   // Vocabulary Actions
@@ -994,8 +1089,14 @@ export const StudyProvider = ({ children }) => {
       deleteGoal,
       schedules,
       addSchedule,
+      updateSchedule,
       toggleScheduleComplete,
       deleteSchedule,
+      plans,
+      addPlan,
+      updatePlan,
+      deletePlan,
+      importPlansFromJson,
       vocabularies,
       addVocabulary,
       addVocabulariesBatch,
