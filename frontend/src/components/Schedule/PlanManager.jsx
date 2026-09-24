@@ -4,7 +4,7 @@ import { useStudyStore } from '../../stores/studyStore';
 import { IMPORTANCE_LEVELS, getImportanceStyles } from './ScheduleUtils';
 
 export const PlanManager = () => {
-  const { plans, addPlan, updatePlan, deletePlan, importPlansFromJson } = useStudyStore();
+  const { plans, addPlan, updatePlan, deletePlan, importPlansFromJson, importSchedulesFromJson } = useStudyStore();
   const [expandedPlanId, setExpandedPlanId] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -35,7 +35,6 @@ export const PlanManager = () => {
         const json = JSON.parse(event.target.result);
         
         if (json.type === 'bundle') {
-          const { importSchedulesFromJson, importPlansFromJson } = useStudyStore.getState();
           let msg = [];
           if (json.plans) {
             await importPlansFromJson(json.plans);
@@ -47,12 +46,10 @@ export const PlanManager = () => {
           }
           alert(`Đã nhập thành công: ${msg.join(', ')}!`);
         } else if (json.type === 'schedules' && Array.isArray(json.data)) {
-          const { importSchedulesFromJson } = useStudyStore.getState();
           await importSchedulesFromJson(json.data);
           alert(`Đã nhập thành công ${json.data.length} ca học!`);
         } else {
           const plansToImport = Array.isArray(json) ? json : [json];
-          const { importPlansFromJson } = useStudyStore.getState();
           await importPlansFromJson(plansToImport);
           alert(`Đã nhập thành công ${plansToImport.length} kế hoạch!`);
         }
