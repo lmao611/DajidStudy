@@ -558,6 +558,27 @@ export const StudyProvider = ({ children }) => {
     return validItems.length;
   };
 
+  const importSchedulesFromJson = async (schedulesList) => {
+    if (!Array.isArray(schedulesList) || schedulesList.length === 0) return 0;
+    const now = Date.now();
+    const validItems = schedulesList.map((item, index) => ({
+      ...item,
+      id: item.id || `sch-${now}-${index}`,
+      completed: false,
+      createdAt: new Date().toISOString()
+    }));
+
+    setSchedules(prev => [...validItems, ...prev]);
+
+    if (isFirebaseConfigured) {
+      // Create a batch add for schedules in firebase.js (we'll implement later, or just add one by one)
+      for (const item of validItems) {
+        await scheduleService.add(item);
+      }
+    }
+    return validItems.length;
+  };
+
   // Vocabulary Actions
   const addVocabulary = async (vocabData) => {
     const now = Date.now();
@@ -1097,6 +1118,7 @@ export const StudyProvider = ({ children }) => {
       updatePlan,
       deletePlan,
       importPlansFromJson,
+      importSchedulesFromJson,
       vocabularies,
       addVocabulary,
       addVocabulariesBatch,

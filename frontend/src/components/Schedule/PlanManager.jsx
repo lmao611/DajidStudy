@@ -33,9 +33,29 @@ export const PlanManager = () => {
     reader.onload = async (event) => {
       try {
         const json = JSON.parse(event.target.result);
-        const plansToImport = Array.isArray(json) ? json : [json];
-        await importPlansFromJson(plansToImport);
-        alert(`Đã nhập thành công ${plansToImport.length} kế hoạch!`);
+        
+        if (json.type === 'bundle') {
+          const { importSchedulesFromJson, importPlansFromJson } = useStudyStore.getState();
+          let msg = [];
+          if (json.plans) {
+            await importPlansFromJson(json.plans);
+            msg.push(`${json.plans.length} kế hoạch`);
+          }
+          if (json.schedules) {
+            await importSchedulesFromJson(json.schedules);
+            msg.push(`${json.schedules.length} ca học`);
+          }
+          alert(`Đã nhập thành công: ${msg.join(', ')}!`);
+        } else if (json.type === 'schedules' && Array.isArray(json.data)) {
+          const { importSchedulesFromJson } = useStudyStore.getState();
+          await importSchedulesFromJson(json.data);
+          alert(`Đã nhập thành công ${json.data.length} ca học!`);
+        } else {
+          const plansToImport = Array.isArray(json) ? json : [json];
+          const { importPlansFromJson } = useStudyStore.getState();
+          await importPlansFromJson(plansToImport);
+          alert(`Đã nhập thành công ${plansToImport.length} kế hoạch!`);
+        }
       } catch (err) {
         alert('Lỗi khi đọc file JSON. Vui lòng kiểm tra lại định dạng.');
         console.error(err);
